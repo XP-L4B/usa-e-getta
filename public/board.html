@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tabellone argomenti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/board.css">
+</head>
+<body class="phase-idle">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <div class="frame">
+    <div class="frame-bulbs" id="bulbs" aria-hidden="true"></div>
+
+    <svg class="corner tl" viewBox="0 0 100 100" aria-hidden="true"><use href="#ornament"/></svg>
+    <svg class="corner tr" viewBox="0 0 100 100" aria-hidden="true"><use href="#ornament"/></svg>
+    <svg class="corner bl" viewBox="0 0 100 100" aria-hidden="true"><use href="#ornament"/></svg>
+    <svg class="corner br" viewBox="0 0 100 100" aria-hidden="true"><use href="#ornament"/></svg>
+
+    <div class="panel">
+      <header class="head">
+        <div class="head-title">
+          <div class="eyebrow">Festival della Famiglia · Video Game Therapy</div>
+          <h1>Scegli <span class="brand-text">l'argomento</span></h1>
+        </div>
+        <div class="status" id="status">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">In attesa del via</span>
+          <span class="status-count" id="statusCount"></span>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="grid" id="grid" aria-label="Argomenti"></section>
+
+        <aside class="qr-card" id="qrCard">
+          <div class="qr-label">Vota dal tuo smartphone</div>
+          <div class="qr-box">
+            <img src="/api/qr.svg" alt="QR code per votare" id="qrImg">
+            <span class="qr-corner a"></span><span class="qr-corner b"></span>
+            <span class="qr-corner c"></span><span class="qr-corner d"></span>
+          </div>
+          <div class="qr-url" id="qrUrl"></div>
+          <div class="qr-hint" id="qrHint">La votazione si aprirà a breve</div>
+          <div class="progress">
+            <div class="progress-label"><span id="progressText">0 / 10</span> argomenti scelti</div>
+            <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="foot">
+        <div class="foot-label">Con</div>
+        <div class="logos">
+          <div class="logo-plate"><img src="/assets/logos/xp-l4b.png" alt="XP-L4B"></div>
+          <div class="logo-plate fill"><img src="/assets/logos/video-game-therapy.jpg" alt="Video Game Therapy"></div>
+          <div class="logo-plate"><img src="/assets/logos/play-better.png" alt="Play Better"></div>
+          <div class="logo-plate fill pink"><img src="/assets/logos/festival-della-famiglia.jpg" alt="Festival della Famiglia"></div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- banner del vincitore -->
+  <div class="winner-banner" id="winnerBanner" aria-live="polite">
+    <div class="wb-eyebrow" id="wbEyebrow">Argomento scelto</div>
+    <div class="wb-title" id="wbTitle"></div>
+  </div>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="ornGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6bc1b0"/>
+        <stop offset=".45" stop-color="#2e94b4"/>
+        <stop offset=".75" stop-color="#8b6cf0"/>
+        <stop offset="1" stop-color="#c014b4"/>
+      </linearGradient>
+      <symbol id="ornament" viewBox="0 0 100 100">
+        <path d="M6 6 H62 L44 18 H18 V44 L6 62 Z" fill="url(#ornGrad)"/>
+        <path d="M24 24 L52 24 L24 52 Z" fill="url(#ornGrad)" opacity=".75"/>
+        <path d="M58 30 L74 22 L66 40 Z" fill="#8b6cf0" opacity=".9"/>
+        <path d="M30 58 L22 74 L40 66 Z" fill="#2e94b4" opacity=".9"/>
+        <circle cx="12" cy="12" r="3.2" fill="#fff"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/board.js"></script>
+</body>
+</html>

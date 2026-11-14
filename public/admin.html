@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e0a2b">
+  <meta name="robots" content="noindex">
+  <title>Regia votazioni</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    body { background: radial-gradient(120% 60% at 50% -10%, #2c1e72, transparent 60%) fixed, var(--ink-0); min-height: 100%; }
+    .wrap { max-width: 560px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 48px; }
+    [hidden] { display: none !important; }
+    h1 { font-family: var(--font-display); font-size: 24px; margin: 0 0 4px; }
+    .sub { color: var(--text-dim); font-size: 14px; margin: 0 0 20px; }
+    .card { padding: 18px; border-radius: 18px; background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); margin-bottom: 14px; }
+    .phase { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 10px var(--sun); }
+    .voting .dot { background: #4dffb5; box-shadow: 0 0 10px #4dffb5; animation: live 1.6s infinite; }
+    .revealing .dot { background: var(--magenta); box-shadow: 0 0 10px var(--magenta); }
+    .meta { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
+    .btn { display: block; width: 100%; min-height: 64px; border: 0; border-radius: 16px; font-weight: 800; font-size: 18px; cursor: pointer; margin-top: 14px; }
+    .btn.go { background: linear-gradient(120deg, #2fd39a, #2e94b4); color: #04121a; box-shadow: 0 10px 30px rgba(47,211,154,.3); }
+    .btn.stop { background: linear-gradient(120deg, var(--violet-hi), var(--magenta)); color: #fff; box-shadow: 0 10px 30px rgba(192,20,180,.35); }
+    .btn:disabled { opacity: .35; cursor: default; box-shadow: none; }
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .ghost { min-height: 46px; border-radius: 12px; border: 1px solid var(--line-strong); background: rgba(255,255,255,.04); font-weight: 700; font-size: 13px; cursor: pointer; }
+    .ghost.danger { border-color: rgba(255,93,122,.5); color: #ff8da1; }
+    .ghost:disabled { opacity: .35; cursor: default; }
+    .bars { display: grid; gap: 8px; }
+    .bar { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 14px; font-weight: 700; }
+    .bar .track { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .bar .fill { height: 100%; background: var(--brand); border-radius: inherit; transition: width .4s; }
+    .bar.out { opacity: .35; }
+    .bar.lead span:first-child::after { content: ' ★'; color: var(--sun); }
+    .h { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--text-faint); font-weight: 800; margin-bottom: 12px; }
+    ol { margin: 0; padding-left: 22px; line-height: 1.8; font-weight: 700; }
+    ol small { color: var(--text-dim); font-weight: 500; }
+    input { width: 100%; min-height: 52px; border-radius: 12px; border: 1px solid var(--line-strong); background: rgba(255,255,255,.06); color: var(--text); padding: 0 14px; font-size: 16px; }
+    .err { color: #ff8da1; font-weight: 700; font-size: 14px; margin-top: 10px; min-height: 1.2em; }
+    .links { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+    .links a { color: var(--text); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Regia</h1>
+    <p class="sub">Controlla le votazioni del tabellone.</p>
+
+    <section class="card" id="login">
+      <div class="h">Accesso</div>
+      <form id="loginForm">
+        <input type="password" id="key" placeholder="Chiave di regia" autocomplete="current-password">
+        <button class="btn go" type="submit">Entra</button>
+        <div class="err" id="loginErr"></div>
+      </form>
+    </section>
+
+    <div id="panel" hidden>
+      <section class="card" id="phaseCard">
+        <div class="phase"><span class="dot"></span><span id="phaseText">—</span></div>
+        <div class="meta" id="phaseMeta"></div>
+        <button class="btn go" id="openBtn">▶ Via! Apri la votazione</button>
+        <button class="btn stop" id="closeBtn">★ Chiudi e illumina il vincitore</button>
+        <div class="row">
+          <button class="ghost" id="cancelBtn">Annulla votazione</button>
+          <button class="ghost" id="replayBtn">Ripeti animazione</button>
+          <button class="ghost" id="undoBtn">Spegni ultimo</button>
+        </div>
+        <div class="err" id="actErr"></div>
+      </section>
+
+      <section class="card">
+        <div class="h">Voti in tempo reale</div>
+        <div class="bars" id="bars"></div>
+      </section>
+
+      <section class="card">
+        <div class="h">Argomenti scelti</div>
+        <ol id="chosenList"></ol>
+        <p class="meta" id="noneChosen">Nessuno per ora.</p>
+      </section>
+
+      <section class="card links">
+        <div class="h">Collegamenti</div>
+        Tabellone: <a href="/" target="_blank">/</a> (premi F per lo schermo intero)<br>
+        Voto: <a href="/vota" target="_blank">/vota</a>
+        <div class="row" style="grid-template-columns:1fr">
+          <button class="ghost danger" id="resetBtn">Azzera tutto il tabellone</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+  (() => {
+    const $ = (id) => document.getElementById(id);
+    const socket = io();
+    let s = null;
+
+    function login(key) {
+      socket.emit('admin-login', key, (r) => {
+        if (r && r.ok) {
+          try { localStorage.setItem('admin-key', key); } catch {}
+          $('login').hidden = true; $('panel').hidden = false;
+        } else {
+          $('loginErr').textContent = 'Chiave non valida.';
+          try { localStorage.removeItem('admin-key'); } catch {}
+        }
+      });
+    }
+    $('loginForm').addEventListener('submit', (e) => { e.preventDefault(); login($('key').value); });
+    socket.on('connect', () => {
+      let k = null; try { k = localStorage.getItem('admin-key'); } catch {}
+      if (k) login(k);
+    });
+
+    function act(name, confirmText) {
+      if (confirmText && !confirm(confirmText)) return;
+      $('actErr').textContent = '';
+      socket.emit('admin', name, (r) => { if (r && r.error) $('actErr').textContent = r.error; });
+    }
+    $('openBtn').onclick = () => act('open');
+    $('closeBtn').onclick = () => act('close');
+    $('cancelBtn').onclick = () => act('cancel', 'Annullare la votazione in corso? I voti ricevuti verranno scartati.');
+    $('replayBtn').onclick = () => act('replay');
+    $('undoBtn').onclick = () => act('undo', 'Spegnere l\'ultimo argomento illuminato?');
+    $('resetBtn').onclick = () => act('reset', 'Azzerare TUTTO il tabellone? Verranno spenti tutti gli argomenti.');
+
+    const label = (id) => (s.topics.find((t) => t.id === id) || {}).label || id;
+
+    socket.on('admin-state', (st) => {
+      s = st;
+      const n = s.chosen.length, all = s.topics.length;
+      $('phaseCard').className = 'card ' + s.phase;
+      $('phaseText').textContent =
+        s.phase === 'voting' ? `Votazione ${s.round} APERTA` :
+        s.phase === 'revealing' ? 'Animazione in corso…' :
+        n >= all ? 'Tutti gli argomenti scelti' : 'In attesa del tuo via';
+      $('phaseMeta').textContent = s.phase === 'voting'
+        ? `${s.total} ${s.total === 1 ? 'voto ricevuto' : 'voti ricevuti'} · quando vuoi, chiudi e illumina`
+        : `${n} di ${all} argomenti scelti`;
+
+      $('openBtn').hidden = s.phase === 'voting';
+      $('closeBtn').hidden = s.phase !== 'voting';
+      $('openBtn').disabled = s.phase !== 'idle' || n >= all;
+      $('closeBtn').disabled = !s.total;
+      $('cancelBtn').disabled = s.phase !== 'voting';
+      $('replayBtn').disabled = s.phase !== 'idle' || !n;
+      $('undoBtn').disabled = s.phase === 'voting' || !n;
+
+      const chosen = new Set(s.chosen.map((c) => c.id));
+      const max = Math.max(0, ...Object.values(s.votes || {}));
+      $('bars').innerHTML = '';
+      s.topics.forEach((t) => {
+        const v = (s.votes || {})[t.id] || 0;
+        const d = document.createElement('div');
+        d.className = 'bar' + (chosen.has(t.id) && !(s.phase === 'revealing' && s.reveal && s.reveal.id === t.id) ? ' out' : '') + (v && v === max && s.phase === 'voting' ? ' lead' : '');
+        d.innerHTML = '<span></span><span></span><div class="track"><div class="fill"></div></div>';
+        d.children[0].textContent = t.label;
+        d.children[1].textContent = chosen.has(t.id) && s.phase !== 'voting' ? '' : v;
+        d.querySelector('.fill').style.width = (s.total ? (v / s.total) * 100 : 0) + '%';
+        $('bars').appendChild(d);
+      });
+
+      $('chosenList').innerHTML = '';
+      s.chosen.forEach((c) => {
+        const li = document.createElement('li');
+        li.textContent = label(c.id) + ' ';
+        const sm = document.createElement('small');
+        sm.textContent = `${c.votes}/${c.total} voti${c.tie ? ' · spareggio a sorteggio' : ''}`;
+        li.appendChild(sm);
+        $('chosenList').appendChild(li);
+      });
+      $('noneChosen').hidden = !!n;
+    });
+  })();
+  </script>
+</body>
+</html>
