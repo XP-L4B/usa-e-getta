@@ -42,7 +42,7 @@
     const mem = remembered();
     if (state.phase === 'voting' && !myVote && mem && mem.round === state.roundId) myVote = mem.topic;
 
-    $('roundLabel').textContent = state.round && state.phase === 'voting' ? `Votazione n. ${state.round}` : 'Festival della Famiglia';
+    $('roundLabel').textContent = state.round && state.phase === 'voting' ? `Votazione n. ${state.round}` : 'Festival della Famiglia di Trento';
 
     if (state.phase === 'voting' && !myVote) {
       show('viewVote');
